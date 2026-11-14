@@ -1,0 +1,15 @@
+{
+  "name": "VYBE GO",
+  "short_name": "VYBE GO",
+  "description": "Meet the world. Random video chat.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a2c43",
+  "theme_color": "#174c70",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

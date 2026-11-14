@@ -1,0 +1,8 @@
+# Supabase CLI কনফিগ (CLI দিয়ে deploy করলে লাগে; Dashboard দিয়ে করলে দরকার নেই)
+project_id = "vybe-go"
+
+[auth]
+enable_anonymous_sign_ins = true
+
+[functions.ice]
+verify_jwt = true

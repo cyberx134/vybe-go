@@ -1,0 +1,24 @@
+# Supabase ফ্রি প্রজেক্ট ৭ দিন নিষ্ক্রিয় থাকলে pause হয়ে যায়। এই workflow প্রতি ৩ দিনে একটি ছোট রিকোয়েস্ট পাঠায়।
+# Repository Secrets: SUPABASE_URL, SUPABASE_ANON_KEY
+name: Supabase keep-alive
+on:
+  schedule:
+    - cron: '17 3 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Anonymous sign-in and call online_count()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          TOKEN=$(curl -fsS -X POST "$SUPABASE_URL/auth/v1/signup" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" -d '{}' \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).access_token))")
+          curl -fsS -X POST "$SUPABASE_URL/rest/v1/rpc/online_count" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" -d '{}'
+          echo

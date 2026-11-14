@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "VYBE GO",
+    "slug": "vybe-go",
+    "scheme": "vybego",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#174c70"
+    },
+    "ios": {
+      "bundleIdentifier": "com.vybego.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "VYBE GO uses your camera so the person you are chatting with can see you.",
+        "NSMicrophoneUsageDescription": "VYBE GO uses your microphone so the person you are chatting with can hear you.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.vybego.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0b2f57"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "VYBE GO uses your camera so the person you are chatting with can see you.",
+          "microphonePermission": "VYBE GO uses your microphone so the person you are chatting with can hear you."
+        }
+      ]
+    ]
+  }
+}

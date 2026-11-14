@@ -1,0 +1,26 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web-and-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install (web + shared packages only)
+        run: npm install --workspace @vybe/web --workspace @vybe/shared --workspace @vybe/client-core --include-workspace-root
+      - name: Unit tests
+        run: npm run test:packages
+      - name: Type-check web (informational)
+        run: npm run typecheck
+        continue-on-error: true
+      - name: Build web
+        run: npm run build:web
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-key
