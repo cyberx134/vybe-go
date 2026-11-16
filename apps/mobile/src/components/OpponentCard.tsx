@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { RTCView, type MediaStream } from 'react-native-webrtc';
 import type { Phase } from '@vybe/client-core';
 import { Icon } from './Icon';
@@ -12,29 +12,30 @@ interface OpponentCardProps {
   stream: MediaStream | null;
   partnerCountry: string | null;
   online: number;
-  hidden: boolean;
-  onToggleHidden: () => void;
+  /** ৪:৩ বাক্সের প্রস্থ (MainScreen হিসাব করে); না থাকলে পূর্ণ প্রস্থ */
+  boxWidth?: number;
   onReport: () => void;
 }
 
-export function OpponentCard({ phase, stream, partnerCountry, online, hidden, onToggleHidden, onReport }: OpponentCardProps) {
+const LOADER = {
+  searching: { title: 'Finding your next match', text: 'Looking for someone who matches your filters.' },
+  connecting: { title: 'Connecting…', text: 'Setting up a secure video link.' },
+} as const;
+
+export function OpponentCard({ phase, stream, partnerCountry, online, boxWidth, onReport }: OpponentCardProps) {
   const inCall = phase === 'connected' || phase === 'connecting';
   const live = phase === 'connected';
-  const showVideo = stream !== null && inCall && !hidden;
+  const showVideo = stream !== null && inCall;
+  const loader = phase === 'searching' || phase === 'connecting' ? LOADER[phase] : null;
 
   return (
-    <View style={styles.card} accessibilityLabel="Stranger video">
+    <View style={[styles.card, { width: boxWidth ?? '100%' }]} accessibilityLabel="Stranger video">
       <LinearGradient colors={['#1d5b80', '#123f5c', '#0b2c44']} style={StyleSheet.absoluteFill} />
 
       {/* থামানো/অপেক্ষার সময় সবসময় অ্যাপের লগো */}
-      {!(stream !== null && inCall) && <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />}
+      {!showVideo && <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />}
 
-      {showVideo && <RTCView streamURL={stream.toURL()} style={StyleSheet.absoluteFill} objectFit="contain" mirror={false} />}
-      {inCall && hidden && (
-        <LinearGradient colors={['#1c5a7c', '#0f3a58']} style={[StyleSheet.absoluteFill, styles.hiddenNote]}>
-          <Text style={styles.hiddenText}>Video hidden. Tap the eye to show it again.</Text>
-        </LinearGradient>
-      )}
+      {showVideo && <RTCView streamURL={stream.toURL()} style={StyleSheet.absoluteFill} objectFit="cover" mirror={false} />}
 
       {inCall && (
         <View style={styles.top}>
@@ -51,9 +52,17 @@ export function OpponentCard({ phase, stream, partnerCountry, online, hidden, on
         </View>
       )}
 
+      {/* ম্যাচিং লোডার শুধু অপনেন্টের বাক্সের ভেতরে — পুরো স্ক্রিনে নয়, কোনো ব্লার নেই */}
+      {loader && (
+        <LinearGradient colors={['rgba(8,36,56,0)', 'rgba(8,36,56,0.88)']} style={styles.loader} pointerEvents="none">
+          <ActivityIndicator color={colors.cyan} />
+          <Text style={styles.loaderTitle}>{loader.title}</Text>
+          <Text style={styles.loaderText}>{loader.text}</Text>
+        </LinearGradient>
+      )}
+
       {inCall && (
         <View style={styles.actions}>
-          <IconButton name={hidden ? 'eye' : 'eyeOff'} label={hidden ? 'Show video' : 'Hide video'} pressed={hidden} onPress={onToggleHidden} />
           <IconButton name="flag" label="Report this user" danger onPress={onReport} />
         </View>
       )}
@@ -63,8 +72,8 @@ export function OpponentCard({ phase, stream, partnerCountry, online, hidden, on
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1.08,
-    minHeight: 190,
+    alignSelf: 'center',
+    aspectRatio: 4 / 3,
     overflow: 'hidden',
     borderRadius: radius.card,
     borderWidth: 1,
@@ -84,7 +93,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   cueText: { color: '#eaf8ff', fontSize: 11, fontFamily: font.semi, letterSpacing: 0.3 },
+  loader: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingTop: 34, paddingBottom: 14, paddingHorizontal: 16, alignItems: 'center', gap: 4 },
+  loaderTitle: { color: '#eaf8ff', fontSize: 13, fontFamily: font.bold },
+  loaderText: { color: 'rgba(234,248,255,0.8)', fontSize: 11, fontFamily: font.regular },
   actions: { position: 'absolute', right: 14, bottom: 14, flexDirection: 'row', gap: 8 },
-  hiddenNote: { alignItems: 'center', justifyContent: 'center', padding: 24 },
-  hiddenText: { color: colors.white, fontSize: 12, fontFamily: font.semi, textAlign: 'center' },
 });

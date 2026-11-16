@@ -15,7 +15,7 @@
   --glass: rgba(255, 255, 255, 0.14);
   --line: rgba(255, 255, 255, 0.2);
   --shadow: 0 18px 55px rgba(3, 28, 45, 0.24);
-  --video-fit: contain;
+  --video-fit: cover;
 }
 
 @layer base {
@@ -55,7 +55,7 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    /* contain = জুম-আউট: পুরো দৃশ্য দেখা যায়, কেউ কাটা পড়ে না. কাটাছাঁট চাইলে cover দিন */
+    /* বাক্স ৪:৩ এবং ক্যামেরাও ৪:৩ (সর্বোচ্চ জুম-আউট) — তাই cover হলেও কাটাছাঁট নেই, দুই পাশে ফাঁকাও নেই */
     object-fit: var(--video-fit, contain);
     z-index: -1;
     background: transparent;
@@ -68,6 +68,10 @@
 
 @layer components {
   .app {
+    /* উপরে-নিচে অন্য অংশ (হেডার, ফিল্টার, হিন্ট) যতটা জায়গা নেয় */
+    --chrome: 215px;
+    /* দুটি ৪:৩ বাক্স যেন পর্দায় পুরো ধরে — প্রস্থ = min(পর্দার প্রস্থ, (বাকি উচ্চতা ÷ ২) × ৪/৩) */
+    --box-w: min(100%, calc((100svh - var(--chrome) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 2 * 4 / 3));
     user-select: none;
     -webkit-user-select: none;
     width: min(100%, 520px);
@@ -128,6 +132,7 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 10px;
   }
   .video-card {
@@ -140,8 +145,10 @@
     background: linear-gradient(145deg, #76a9c4, #2a6d91 55%, #174a6c);
   }
   .opponent {
-    flex: 1.08;
-    min-height: 240px;
+    flex: none;
+    width: var(--box-w);
+    aspect-ratio: 4 / 3;
+    margin-inline: auto;
     background: radial-gradient(ellipse at 50% 30%, #1d5b80 0, #123f5c 55%, #0b2c44 100%);
   }
   .opponent.has-video,
@@ -196,8 +203,10 @@
     }
   }
   .self {
-    flex: 0.92;
-    min-height: 205px;
+    flex: none;
+    width: var(--box-w);
+    aspect-ratio: 4 / 3;
+    margin-inline: auto;
     background: linear-gradient(145deg, #d7edf3, #9cc8d8 55%, #6099b5);
     color: var(--ink);
   }
@@ -486,6 +495,38 @@
     text-align: center;
     box-shadow: var(--shadow);
   }
+  .card-loader {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 34px 16px 14px;
+    text-align: center;
+    color: #eaf8ff;
+    background: linear-gradient(0deg, rgba(8, 36, 56, 0.86), rgba(8, 36, 56, 0));
+    pointer-events: none;
+  }
+  .card-loader strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .card-loader small {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+  .card-loader .spinner {
+    width: 26px;
+    height: 26px;
+    margin: 0 auto 4px;
+    border-width: 3px;
+    border-color: rgba(255, 255, 255, 0.28);
+    border-top-color: var(--cyan);
+  }
   .spinner {
     width: 35px;
     height: 35px;
@@ -742,15 +783,10 @@
     padding: 22px 0;
   }
   .app {
+    --chrome: 259px;
     min-height: calc(100svh - 44px);
     max-width: 440px;
     padding: 0;
-  }
-  .opponent {
-    min-height: 300px;
-  }
-  .self {
-    min-height: 250px;
   }
   .stage {
     gap: 13px;
@@ -761,16 +797,11 @@
 }
 @media (max-height: 690px) {
   .app {
+    --chrome: 185px;
     gap: 8px;
   }
   .topbar {
     height: 44px;
-  }
-  .opponent {
-    min-height: 190px;
-  }
-  .self {
-    min-height: 165px;
   }
   .controls {
     padding: 8px;

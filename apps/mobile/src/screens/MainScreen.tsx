@@ -10,7 +10,6 @@ import { Icon } from '../components/Icon';
 import { OpponentCard } from '../components/OpponentCard';
 import { ReportSheet } from '../components/ReportSheet';
 import { SelfCard } from '../components/SelfCard';
-import { StageOverlay } from '../components/StageOverlay';
 import { Toast } from '../components/Toast';
 import { TopBar } from '../components/TopBar';
 import { useEngine } from '../hooks/useEngine';
@@ -52,7 +51,7 @@ export function MainScreen({ profile, initialFilters, onEditProfile }: MainScree
   const [chatOpen, setChatOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportBusy, setReportBusy] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  const [stageSize, setStageSize] = useState<{ w: number; h: number } | null>(null);
   const [unread, setUnread] = useState(0);
 
   const requestedRef = useRef(false);
@@ -87,7 +86,6 @@ export function MainScreen({ profile, initialFilters, onEditProfile }: MainScree
   }, [noticeId]);
 
   useEffect(() => {
-    setHidden(false);
     setUnread(0);
     seenMessages.current = 0;
   }, [state.matchId]);
@@ -206,12 +204,8 @@ export function MainScreen({ profile, initialFilters, onEditProfile }: MainScree
     );
   }
 
-  const overlay =
-    state.phase === 'searching'
-      ? { title: 'Finding your next match', text: 'Looking for someone who matches your filters.' }
-      : state.phase === 'connecting'
-        ? { title: 'Connecting…', text: 'Setting up a secure video link.' }
-        : null;
+  // দুটি ৪:৩ বাক্স যেন stage এ পুরো ধরে: প্রস্থ = min(stage প্রস্থ, (stage উচ্চতা − ফাঁক) ÷ ২ × ৪/৩)
+  const boxWidth = stageSize ? Math.max(120, Math.min(stageSize.w, ((stageSize.h - 10) / 2) * (4 / 3))) : undefined;
 
   return (
     <LinearGradient colors={gradients.background} style={{ flex: 1 }}>
@@ -219,14 +213,13 @@ export function MainScreen({ profile, initialFilters, onEditProfile }: MainScree
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.app} {...panResponder.panHandlers}>
           <TopBar statusText={STATUS_TEXT[state.phase]} online={state.phase !== 'offline'} />
 
-          <View style={styles.stage}>
+          <View style={styles.stage} onLayout={(e) => setStageSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
             <OpponentCard
               phase={state.phase}
               stream={state.remoteStream}
               partnerCountry={state.partnerCountry}
               online={state.online}
-              hidden={hidden}
-              onToggleHidden={() => setHidden((h) => !h)}
+              boxWidth={boxWidth}
               onReport={() => setReportOpen(true)}
             />
             <SelfCard
@@ -235,11 +228,11 @@ export function MainScreen({ profile, initialFilters, onEditProfile }: MainScree
               facing={media.facing}
               unread={unread}
               chatOpen={chatOpen}
+              boxWidth={boxWidth}
               onToggleChat={toggleChat}
               onSwitchCamera={() => void switchCamera()}
               onRetryCamera={() => void media.request()}
             />
-            <StageOverlay visible={overlay !== null} title={overlay?.title ?? ''} text={overlay?.text ?? ''} />
             <ChatPanel open={chatOpen && inCall} messages={state.messages} onClose={() => setChatOpen(false)} onSend={(text) => void engine.sendMessage(text)} />
           </View>
 
@@ -272,7 +265,7 @@ export function MainScreen({ profile, initialFilters, onEditProfile }: MainScree
 
 const styles = StyleSheet.create({
   app: { flex: 1, paddingHorizontal: 14, gap: 12 },
-  stage: { flex: 1, gap: 10 },
+  stage: { flex: 1, gap: 10, justifyContent: 'center' },
   hint: { textAlign: 'center', color: '#d0e8f2', fontSize: 10, letterSpacing: 0.25, paddingBottom: 8, fontFamily: font.regular },
   link: { textDecorationLine: 'underline' },
   banned: { flex: 1, justifyContent: 'center', padding: 18 },

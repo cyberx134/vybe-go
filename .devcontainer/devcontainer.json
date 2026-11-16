@@ -1,0 +1,17 @@
+{
+  "name": "VYBE GO — Android build",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installMaven": "false",
+      "installGradle": "false"
+    }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
+  "postCreateCommand": "bash scripts/codespace-setup.sh",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "APK download", "onAutoForward": "notify" }
+  }
+}

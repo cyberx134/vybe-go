@@ -16,7 +16,7 @@ interface SelfCardProps {
 const STATUS_LABEL: Record<MediaStatus, string> = {
   idle: 'CAMERA OFF',
   requesting: 'STARTING CAMERA…',
-  ready: 'YOU',
+  ready: '',
   denied: 'PERMISSION NEEDED',
   unavailable: 'CAMERA UNAVAILABLE',
 };
@@ -32,7 +32,6 @@ export function SelfCard({ stream, status, facing, unread, chatOpen, onToggleCha
   }, [stream]);
 
   const ready = status === 'ready' && stream !== null;
-  const label = ready ? (facing === 'user' ? 'FRONT CAMERA' : 'BACK CAMERA') : STATUS_LABEL[status];
 
   return (
     <section className={ready ? 'video-card self has-video' : 'video-card self'} aria-label="Your camera">
@@ -40,7 +39,8 @@ export function SelfCard({ stream, status, facing, unread, chatOpen, onToggleCha
       {/* মাইক সবসময় চালু; ভিডিও muted শুধু নিজের প্রতিধ্বনি আটকাতে */}
       <video ref={videoRef} autoPlay playsInline muted className={facing === 'user' ? 'mirror' : undefined} />
       <div className="card-top">
-        <span className="pill light">{label}</span>
+        {/* ক্যামেরা চালু থাকলে কোনো লেখা নেই; শুধু সমস্যা হলে দেখায় */}
+        {!ready && <span className="pill light">{STATUS_LABEL[status]}</span>}
         {!ready && status !== 'requesting' && (
           <button type="button" className="pill light" data-no-swipe onClick={onRetryCamera}>
             Enable camera

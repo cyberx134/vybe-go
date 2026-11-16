@@ -7,15 +7,20 @@ interface OpponentCardProps {
   stream: MediaStream | null;
   partnerCountry: string | null;
   online: number;
-  blurred: boolean;
-  onToggleBlur: () => void;
   onReport: () => void;
 }
 
-export function OpponentCard({ phase, stream, partnerCountry, online, blurred, onToggleBlur, onReport }: OpponentCardProps) {
+const LOADER = {
+  searching: { title: 'Finding your next match', text: 'Looking for someone who matches your filters.' },
+  connecting: { title: 'Connecting…', text: 'Setting up a secure video link.' },
+} as const;
+
+export function OpponentCard({ phase, stream, partnerCountry, online, onReport }: OpponentCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const inCall = phase === 'connected' || phase === 'connecting';
   const showVideo = inCall && stream !== null;
+  const loader = phase === 'searching' || phase === 'connecting' ? LOADER[phase] : null;
+  const live = phase === 'connected';
 
   useEffect(() => {
     const el = videoRef.current;
@@ -24,15 +29,12 @@ export function OpponentCard({ phase, stream, partnerCountry, online, blurred, o
     if (stream) void el.play().catch(() => undefined);
   }, [stream]);
 
-  const live = phase === 'connected';
-
   return (
     <section className={showVideo ? 'video-card opponent has-video' : 'video-card opponent'} aria-label="Stranger video">
       {/* থামানো/অপেক্ষার সময় সবসময় অ্যাপের লগো */}
       {!showVideo && <img className="logo-fill" src="/logo.png" alt="VYBE GO — Meet the world" draggable={false} />}
 
-      <video ref={videoRef} autoPlay playsInline className={blurred ? 'video-blur' : undefined} style={{ visibility: showVideo ? 'visible' : 'hidden' }} />
-      {blurred && live && <div className="blur-note">Video hidden. Tap the eye to show it again.</div>}
+      <video ref={videoRef} autoPlay playsInline style={{ visibility: showVideo ? 'visible' : 'hidden' }} />
 
       {inCall && (
         <div className="card-top">
@@ -54,11 +56,17 @@ export function OpponentCard({ phase, stream, partnerCountry, online, blurred, o
         </div>
       )}
 
+      {/* ম্যাচিং লোডার শুধু অপনেন্টের বাক্সের ভেতরে — পুরো স্ক্রিনে নয়, কোনো ব্লার নেই */}
+      {loader && (
+        <div className="card-loader" role="status" aria-live="polite">
+          <div className="spinner" />
+          <strong>{loader.title}</strong>
+          <small>{loader.text}</small>
+        </div>
+      )}
+
       {inCall && (
         <div className="video-actions" data-no-swipe>
-          <button className="icon-btn" type="button" aria-label={blurred ? 'Show video' : 'Hide video'} aria-pressed={blurred} onClick={onToggleBlur}>
-            <Icon name={blurred ? 'eye' : 'eyeOff'} />
-          </button>
           <button className="icon-btn danger" type="button" aria-label="Report this user" onClick={onReport}>
             <Icon name="flag" />
           </button>

@@ -6,7 +6,6 @@ import { FilterBar } from '../components/FilterBar';
 import { OpponentCard } from '../components/OpponentCard';
 import { ReportSheet } from '../components/ReportSheet';
 import { SelfCard } from '../components/SelfCard';
-import { StageOverlay } from '../components/StageOverlay';
 import { Toast } from '../components/Toast';
 import { TopBar } from '../components/TopBar';
 import { useChatEngine } from '../hooks/useChatEngine';
@@ -47,7 +46,6 @@ export function ChatScreen({ profile, onEditProfile }: ChatScreenProps) {
   const [chatOpen, setChatOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportBusy, setReportBusy] = useState(false);
-  const [blurred, setBlurred] = useState(false);
   const [unread, setUnread] = useState(0);
 
   const requestedRef = useRef(false);
@@ -71,7 +69,6 @@ export function ChatScreen({ profile, onEditProfile }: ChatScreenProps) {
   }, [noticeId]);
 
   useEffect(() => {
-    setBlurred(false);
     setUnread(0);
     seenMessages.current = 0;
   }, [state.matchId]);
@@ -171,13 +168,6 @@ export function ChatScreen({ profile, onEditProfile }: ChatScreenProps) {
 
   if (state.banUntil !== null) return <BannedScreen until={state.banUntil} />;
 
-  const overlay =
-    state.phase === 'searching'
-      ? { title: 'Finding your next match', text: 'Looking for someone who matches your filters.' }
-      : state.phase === 'connecting'
-        ? { title: 'Connecting…', text: 'Setting up a secure video link.' }
-        : null;
-
   return (
     <main className="app">
       <TopBar statusText={STATUS_TEXT[state.phase]} online={state.phase !== 'offline'} />
@@ -188,8 +178,6 @@ export function ChatScreen({ profile, onEditProfile }: ChatScreenProps) {
           stream={state.remoteStream}
           partnerCountry={state.partnerCountry}
           online={state.online}
-          blurred={blurred}
-          onToggleBlur={() => setBlurred((b) => !b)}
           onReport={() => setReportOpen(true)}
         />
         <SelfCard
@@ -202,7 +190,6 @@ export function ChatScreen({ profile, onEditProfile }: ChatScreenProps) {
           onSwitchCamera={() => void switchCamera()}
           onRetryCamera={() => void media.request()}
         />
-        <StageOverlay visible={overlay !== null} title={overlay?.title ?? ''} text={overlay?.text ?? ''} />
         <ChatPanel open={chatOpen && inCall} messages={state.messages} onClose={() => setChatOpen(false)} onSend={(text) => void engine.sendMessage(text)} />
       </section>
 

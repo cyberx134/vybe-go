@@ -12,6 +12,8 @@ interface SelfCardProps {
   facing: Facing;
   unread: number;
   chatOpen: boolean;
+  /** ৪:৩ বাক্সের প্রস্থ (MainScreen হিসাব করে); না থাকলে পূর্ণ প্রস্থ */
+  boxWidth?: number;
   onToggleChat: () => void;
   onSwitchCamera: () => void;
   onRetryCamera: () => void;
@@ -20,22 +22,22 @@ interface SelfCardProps {
 const LABEL: Record<MediaStatus, string> = {
   idle: 'CAMERA OFF',
   requesting: 'STARTING CAMERA…',
-  ready: 'YOU',
+  ready: '',
   denied: 'PERMISSION NEEDED',
 };
 
-export function SelfCard({ stream, status, facing, unread, chatOpen, onToggleChat, onSwitchCamera, onRetryCamera }: SelfCardProps) {
+export function SelfCard({ stream, status, facing, unread, chatOpen, boxWidth, onToggleChat, onSwitchCamera, onRetryCamera }: SelfCardProps) {
   const ready = status === 'ready' && stream !== null;
-  const label = ready ? (facing === 'user' ? 'FRONT CAMERA' : 'BACK CAMERA') : LABEL[status];
 
   return (
-    <View style={[styles.card, ready && { backgroundColor: '#07202f' }]} accessibilityLabel="Your camera">
+    <View style={[styles.card, { width: boxWidth ?? '100%' }, ready && { backgroundColor: '#07202f' }]} accessibilityLabel="Your camera">
       {!ready && <LinearGradient colors={gradients.self} style={StyleSheet.absoluteFill} />}
-      {/* জুম-আউট: contain — পুরো দৃশ্য দেখা যায়। মাইক সবসময় চালু */}
-      {ready && <RTCView streamURL={stream.toURL()} style={StyleSheet.absoluteFill} objectFit="contain" mirror={facing === 'user'} />}
+      {/* ৪:৩ বাক্সে ৪:৩ জুম-আউট ক্যামেরা: ফাঁকাও নেই, কাটাছাঁটও নেই। মাইক সবসময় চালু */}
+      {ready && <RTCView streamURL={stream.toURL()} style={StyleSheet.absoluteFill} objectFit="cover" mirror={facing === 'user'} />}
 
       <View style={styles.top}>
-        <Pill label={label} light />
+        {/* ক্যামেরা চালু থাকলে কোনো লেখা নেই; শুধু সমস্যা হলে দেখায় */}
+        {!ready && <Pill label={LABEL[status]} light />}
         {!ready && status !== 'requesting' && (
           <Pressable accessibilityRole="button" onPress={onRetryCamera}>
             <Pill label="Enable camera" light />
@@ -53,8 +55,8 @@ export function SelfCard({ stream, status, facing, unread, chatOpen, onToggleCha
 
 const styles = StyleSheet.create({
   card: {
-    flex: 0.92,
-    minHeight: 165,
+    alignSelf: 'center',
+    aspectRatio: 4 / 3,
     overflow: 'hidden',
     borderRadius: radius.card,
     borderWidth: 1,
